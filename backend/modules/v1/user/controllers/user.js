@@ -16,9 +16,9 @@ class User{
     }
 
     async logout(req,res){
-        const request_data = req.body;
-        
-        const response_data = await userModel.logout(request_data);
+        const user_id = req.user_id;
+        console.log(user_id);
+        const response_data = await userModel.logout(user_id);
         await common.response(res, response_data);
     }
     

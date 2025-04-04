@@ -22,7 +22,7 @@ class UserModel {
                 const device_data = {
                     device_type: "Android",
                     time_zone: "UTC",
-                    device_token: common.generateToken(24),
+                    device_token: "000000000000000000000000",
                     user_token: common.generateToken(24),
                     user_id: user_id,
                     os_version: "23.8.8",
@@ -77,7 +77,7 @@ class UserModel {
                     const device_data = {
                         device_type: "Android",
                         time_zone: "UTC",
-                        device_token: common.generateToken(24),
+                        device_token: "000000000000000000000000",
                         user_token: user_token,
                         os_version: "23.8.8",
                         app_version: "1.2.3"
@@ -108,8 +108,40 @@ class UserModel {
             };
         }
     }
-    async logout(request_data){
-        console.log("Inside Logout");
+
+    async logout(user_id){
+        try{
+            const data = common.getUserAllData(user_id);
+            if(data.is_login == 0){
+                return {
+                    code: response_code.OPERATION_FAILED,
+                    message: t("user_already_logged_out")
+                }
+            } else{
+                const device_data = {
+                    time_zone: "",
+                    device_token: "",
+                    user_token: "",
+                    os_version: "",
+                    app_version: ""
+                }
+
+                await database.query(`UPDATE tbl_user SET is_login = 0 where user_id = ?`, [user_id]);
+                await database.query(`UPDATE tbl_device_info SET ? where user_id = ?`, [device_data, user_id]);
+
+                return {
+                    code: response_code.SUCCESS,
+                    message: t("user_logout_success")
+                }
+            }
+        } catch(error){
+            console.log(error.message);
+            return {
+                code: response_code.OPERATION_FAILED,
+                message: t("some_error_occured"),
+                data: error.message
+            };
+        }
     }
 }
 module.exports = new UserModel();

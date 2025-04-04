@@ -95,6 +95,19 @@ class Common{
         }
     }
 
+    async getUserAllData(id){
+        try{
+            const checkUser = `SELECT * FROM tbl_user WHERE user_id = ? and is_deleted = 0`;
+            const [user_data] = await database.query(checkUser, [id]);
+            return user_data[0];
+        } catch(error){
+            console.log(error.message);
+            return false;
+        }
+    }
+
+    
+
     async updateToken(user_id, token){
         try{
             const updateTokenQuery = `UPDATE tbl_device SET user_token = ? WHERE user_id = ?`;

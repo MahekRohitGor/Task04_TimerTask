@@ -2,8 +2,10 @@ const {default: localizify} = require('localizify');
 const database = require("../config/database");
 const common = require("../utilities/common");
 const response_code = require("../utilities/response-error-code");
+const lodash = require('lodash');
 
 class HeaderAuth{
+
     async validateHeader(req,res,next){
         let api_key = (req.headers['api-key'] != undefined && req.headers['api-key'] != "" ? req.headers['api-key'] : '');
         if(api_key != ""){
@@ -13,15 +15,30 @@ class HeaderAuth{
                 if(api_dec === process.env.API_KEY){
                     next();
                 } else{
-                    return this.sendUnauthorizedResponse(res, "Invalid API key");
+                    const response_data_ = {
+                        code: response_code.UNAUTHORIZED,
+                        message: "Invalid API Key"
+                    }
+                    const response_data = common.encrypt(response_data_);
+                    res.status(401).send(response_data);
                 }
 
             } catch(error){
                 console.log(error);
-                return this.sendUnauthorizedResponse(res, "Invalid API key");
+                    const response_data_ = {
+                        code: response_code.UNAUTHORIZED,
+                        message: "Invalid API Key"
+                    }
+                    const response_data = common.encrypt(response_data_);
+                    res.status(401).send(response_data);
             }
         } else{
-            return this.sendUnauthorizedResponse(res, "Invalid API key");
+            const response_data_ = {
+                code: response_code.UNAUTHORIZED,
+                message: "Invalid API Key"
+            }
+            const response_data = common.encrypt(response_data_);
+            res.status(401).send(response_data);
         }
     }
 
@@ -42,27 +59,64 @@ class HeaderAuth{
 
     async getRequestOwnerUser(token) {
         try {
+            console.log("here");
             let selectRequestOwnerQuery = "SELECT * from tbl_device_info WHERE user_token = ? and is_deleted = 0 and is_active = 1";
             const [owner] = await database.query(selectRequestOwnerQuery, [token]);
+            console.log(owner);
             if (owner.length > 0) {
                 return owner[0];
             } else {
                 throw new Error("Invalid access token");
             }
         } catch (error) {
-            console.error("Error in getRequestOwnerUser:", error.message);
+            console.log(error.message);
             throw error;
         }
     }
 
     async header(req, res, next) {
         try {
-            // this.setLanguage(req.headers);
-            const api_dec = req.headers["api-key"];
+            console.log("here");
+            let headers = req.headers;
+    
+            const byPassApi = ['login', 'signup', 'api-docs', 'verifyOtp'];
+            let api_dec = headers["api-key"];
             if (api_dec === process.env.API_KEY) {
-                this.processRequest(req, res, next);
+                let headerObj = new HeaderAuth();
+                req = headerObj.extractMethod(req);
+    
+                if (byPassApi.includes(req.requestMethod)) {
+                    return next();
+                } else {
+                    const token = headers.authorization_token;
+                    if (!token) {
+                        return res.status(401).json({
+                            code: response_code.UNAUTHORIZED,
+                            message: "Authorization token is missing"
+                        });
+                    }
+
+                    try {
+                        let user;
+                        user = await headerObj.getRequestOwnerUser(token);
+                        console.log("User found:", user);
+                        req.user_id = user.user_id;
+                        req.user = user;
+                        console.log("req.user_id set to:", req.user_id);
+                        next();
+                    } catch (error) {
+                        console.log(error);
+                        return res.status(401).json({
+                            code: response_code.UNAUTHORIZED,
+                            message: "Invalid Access Token"
+                        });
+                    }
+                }
             } else {
-                return this.sendUnauthorizedResponse(res, "Invalid API key");
+                return res.status(401).json({
+                    code: response_code.UNAUTHORIZED,
+                    message: "Invalid API key",
+                });
             }
         } catch (error) {
             return res.status(500).json({
@@ -71,57 +125,6 @@ class HeaderAuth{
                 data: error.message,
             });
         }
-    }
-
-    // setLanguage(headers) {
-    //     const supported_languages = ["en", "fr", "guj"];
-    //     const lng = (headers["accept-language"] && supported_languages.includes(headers["accept-language"]))
-    //         ? headers["accept-language"]
-    //         : "en";
-
-    //     process.env.LNG = lng;
-    //     localizify
-    //         .add("en", en)
-    //         .add("fr", fr)
-    //         .add("guj", guj);
-    // }
-
-    async processRequest(req, res, next) {
-        const byPassApi = ['login', 'signup'];
-        const headerObj = new HeaderAuth();
-        req = headerObj.extractMethod(req);
-
-        if (byPassApi.includes(req.requestMethod)) {
-            return next();
-        } else {
-            const token = req.headers.authorization_token;
-            if (!token) {
-                return this.sendUnauthorizedResponse(res, "Authorization token is missing");
-            }
-            await this.authenticateUser(req, res, next, token, headerObj);
-        }
-    }
-
-    async authenticateUser(req, res, next, token, headerObj) {
-        try {
-            let user;
-            user = await headerObj.getRequestOwnerUser(token);
-            req.user_id = user.user_id;
-            req.user = user;
-            next();
-        } catch (error) {
-            console.log(error);
-            return this.sendUnauthorizedResponse(res, "Invalid Access Token");
-        }
-    }
-
-    sendUnauthorizedResponse(res, message) {
-        const data = {
-            code: response_code.UNAUTHORIZED,
-            message: message,
-            data: null
-        }
-        common.response(res, data);
     }
 
 }
