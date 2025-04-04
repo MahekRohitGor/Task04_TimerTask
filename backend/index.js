@@ -2,16 +2,16 @@ const express = require("express");
 const app = express();
 const app_routing = require("./modules/app-routing");
 const validator = require("./middlewares/validator");
-const headerAuth = require("./middlewares/header-auth");
+const headerAuth = require("./middlewares/header_auth");
 
 require('dotenv').config();
 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.text());
+app.use(express.json());
 
-app.use(validator.extractHeaderLang);
-app.use(headerAuth.validateHeader);
-app.use(headerAuth.header);
+// app.use(validator.extractHeaderLang);
+// app.use(headerAuth.validateHeader);
+// app.use(headerAuth.header);
 
 app_routing.v1(app);
 

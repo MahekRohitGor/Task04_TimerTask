@@ -2,10 +2,6 @@ const {default: localizify} = require('localizify');
 const database = require("../config/database");
 const common = require("../utilities/common");
 const response_code = require("../utilities/response-error-code");
-const en = require("../language/en");
-const fr = require("../language/fr");
-const guj = require("../language/guj");
-const lodash = require('lodash');
 
 class HeaderAuth{
     async validateHeader(req,res,next){
@@ -61,7 +57,7 @@ class HeaderAuth{
 
     async header(req, res, next) {
         try {
-            this.setLanguage(req.headers);
+            // this.setLanguage(req.headers);
             const api_dec = req.headers["api-key"];
             if (api_dec === process.env.API_KEY) {
                 this.processRequest(req, res, next);
@@ -77,18 +73,18 @@ class HeaderAuth{
         }
     }
 
-    setLanguage(headers) {
-        const supported_languages = ["en", "fr", "guj"];
-        const lng = (headers["accept-language"] && supported_languages.includes(headers["accept-language"]))
-            ? headers["accept-language"]
-            : "en";
+    // setLanguage(headers) {
+    //     const supported_languages = ["en", "fr", "guj"];
+    //     const lng = (headers["accept-language"] && supported_languages.includes(headers["accept-language"]))
+    //         ? headers["accept-language"]
+    //         : "en";
 
-        process.env.LNG = lng;
-        localizify
-            .add("en", en)
-            .add("fr", fr)
-            .add("guj", guj);
-    }
+    //     process.env.LNG = lng;
+    //     localizify
+    //         .add("en", en)
+    //         .add("fr", fr)
+    //         .add("guj", guj);
+    // }
 
     async processRequest(req, res, next) {
         const byPassApi = ['login', 'signup'];

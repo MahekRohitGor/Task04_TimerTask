@@ -1,5 +1,8 @@
 let cryptLib = require("cryptlib");
 let constants = require("../config/constants");
+let database = require("../config/database");
+let response_code = require("./response-error-code.js");
+const md5 = require("md5");
 
 class Common{
     generateOtp(length){
@@ -42,14 +45,50 @@ class Common{
     }
 
     async response(res, message){
-        return res.json(this.encrypt(message));
+        return res.json(message);
     }
 
     async checkExistingUser(email){
         try{
-            const checkUser = `SELECT * FROM tbl_user WHERE email = ? and is_deleted = 0`;
+            const checkUser = `SELECT * FROM tbl_user WHERE email_id = ? and is_deleted = 0`;
             const [user] = await database.query(checkUser, [email]);
             return user.length > 0;
+        } catch(error){
+            console.log(error.message);
+            return false;
+        }
+    }
+
+    async checkUserAuth(email, pass){
+        try{
+            const checkUser = `SELECT user_id FROM tbl_user WHERE email_id = ? and password = ? and is_deleted = 0`;
+            const [user_data] = await database.query(checkUser, [email, md5(pass)]);
+            return user_data.length > 0;
+
+        } catch(error){
+            console.log(error.message);
+            return false;
+        }
+    }
+
+    async isLogin(email, pass){
+        try{
+            const checkUser = `SELECT user_id FROM tbl_user WHERE email_id = ? and password = ? and is_deleted = 0 and is_login = 1`;
+            const [user_data] = await database.query(checkUser, [email, md5(pass)]);
+            return user_data.length > 0;
+
+        } catch(error){
+            console.log(error.message);
+            return false;
+        }
+    }
+
+    async getUserData(email, pass){
+        try{
+            const checkUser = `SELECT user_id FROM tbl_user WHERE email_id = ? and password = ? and is_deleted = 0`;
+            const [user_data] = await database.query(checkUser, [email, md5(pass)]);
+            return user_data[0].user_id;
+
         } catch(error){
             console.log(error.message);
             return false;

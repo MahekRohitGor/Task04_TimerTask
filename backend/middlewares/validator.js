@@ -1,29 +1,20 @@
 const Validator = require('Validator');
-const {default: localizify} = require('localizify');
-const en = require("../language/en");
-const fr = require("../language/fr");
-const guj = require("../language/guj");
 const database = require("../config/database");
 const { t } = require('localizify');
 const common = require("../utilities/common");
 const response_code = require("../utilities/response-error-code");
 
-localizify
-    .add("en", en)
-    .add("fr", fr)
-    .add("guj", guj);
-
-class Validator{
+class Validators{
     async checkValidationRules(req,res,request_data,rules,message,keywords){
         const v = Validator.make(request_data, rules, message, keywords);
 
             if(v.fails()){
                 const errors = v.getErrors();
                 const firstError = Object.values(errors)[0][0];
-                const response_data = common.encrypt({
+                const response_data = {
                     code: response_code.OPERATION_FAILED,
                     message: firstError
-                });
+                };
                 common.response(res, response_data);
                 return false;
             } else{
@@ -50,10 +41,9 @@ class Validator{
             if (req.body && typeof req.body === 'object' && !req.body.userLang) {
                 req.body.userLang = req.userLang;
             } else if (typeof req.body === 'string') {
-                const decrypted = common.decryptPlain(req.body);
-                const req_body = JSON.parse(decrypted);
+                const req_body = req.body;
                 req_body.userLang = req.userLang;
-                req.body = common.encrypt(req_body);
+                req.body = req_body;
             }
         } catch (error) {
             console.error('Language middleware decryption error:', error);
@@ -64,4 +54,4 @@ class Validator{
     
 }
 
-module.exports = new Validator();
+module.exports = new Validators();
