@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function(){
-    console.log("here");
     const user_token = JSON.parse(localStorage.getItem("user_token"));
     console.log(user_token);
     if(!user_token){

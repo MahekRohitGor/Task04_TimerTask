@@ -27,9 +27,13 @@ document.addEventListener("DOMContentLoaded", function(){
             .then((response) => response.text())
             .then((result) => {
                 const data = JSON.parse(result);
-                localStorage.setItem("user_token", JSON.stringify(data.data.user_token));
-                if(data.code == '1'){
-                    window.location.href = "home.html";
+                if(data.data){
+                    localStorage.setItem("user_token", JSON.stringify(data.data.user_token));
+                    if(data.code == '1'){
+                        window.location.href = "home.html";
+                    } else{
+                        alert(data.message);
+                    }
                 } else{
                     alert(data.message);
                 }

@@ -57,13 +57,15 @@ class UserModel {
             if(!(await common.checkExistingUser(request_data.email_id))){
                 return {
                     code: response_code.OPERATION_FAILED,
-                    message: t("user_not_found_please_register")
+                    message: t("user_not_found_please_register"),
+                    data: null
                 }
             } 
             else if(await common.isLogin(request_data.email_id, request_data.password)){
                 return {
                     code: response_code.OPERATION_FAILED,
-                    message: t("user_already_logged_in")
+                    message: t("user_already_logged_in"),
+                    data: null
                 }
             }
             else{
@@ -157,8 +159,8 @@ class UserModel {
 
             const task_data = {
                 user_id: user_id,
-                task_title: request_data.task_title,
-                task_description: request_data.task_description,
+                title: request_data.task_title,
+                description: request_data.task_description,
                 deadline: request_data.deadline,
                 status: "pending"
             }
@@ -177,6 +179,53 @@ class UserModel {
                 data: {
                     task_id: insert_task_id
                 }
+            }
+
+        } catch(error){
+            console.log(error.message);
+            return {
+                code: response_code.OPERATION_FAILED,
+                message: t("some_error_occured"),
+                data: error.message
+            };
+        }
+    }
+
+    async list_all_tasks(user_id){
+        try{
+            const checkUserLogin = await common.isLoginId(user_id);
+            console.log(checkUserLogin);
+            if(!checkUserLogin){
+                return {
+                    code: response_code.OPERATION_FAILED,
+                    message: t("user_not_login"),
+                    data: null
+                }
+            }
+
+            const [task_data] = await database.query(`SELECT * FROM tbl_tasks where user_id = ?`, [user_id]);
+            if(task_data.length == 0){
+                return {
+                    code: response_code.OPERATION_FAILED,
+                    message: t("no_task_found"),
+                    data: null
+                }
+            }
+
+            const task_details = task_data.map(task => ({
+                user_id: user_id,
+                title: task.title,
+                desc: task.description,
+                deadline: task.deadline,
+                status: task.status,
+                notes: task.notes
+                
+            }));
+
+            return {
+                code: response_code.SUCCESS,
+                message: t("task_list_success"),
+                data: task_details
             }
 
         } catch(error){
