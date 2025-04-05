@@ -238,5 +238,66 @@ class UserModel {
             };
         }
     }
+
+    async updateStatus(request_data, user_id){
+        try{
+            console.log(user_id);
+            const checkOtherTasks = `SELECT * from tbl_tasks where status = "inprogress" and user_id = ?`;
+            const [results] = await database.query(checkOtherTasks, [user_id]);
+
+            const checkCompTasks = `SELECT * from tbl_tasks where status = "completed" and user_id = ? and task_id = ?`;
+            const [res] = await database.query(checkCompTasks, [user_id, request_data.task_id]);
+
+            if(res.length > 0){
+                return {
+                    code: response_code.OPERATION_FAILED,
+                    message: t('task_already_submitted'),
+                    data: null
+                }
+            }
+
+            if(results.length === 0 || request_data.status == "completed"){
+                const task_data = {
+                    status: request_data.status,
+                }
+                if(request_data.notes){
+                    task_data.notes = request_data.notes;
+                }
+                const updateQuery = `UPDATE tbl_tasks SET ? where user_id = ? and task_id = ?`;
+                await database.query(updateQuery, [task_data, user_id, request_data.task_id]);
+                const data = {};
+
+                if(request_data.start_time){
+                    data.start_time = request_data.start_time;
+                }
+                if(request_data.end_time){
+                    data.end_time = request_data.end_time;
+                }
+
+                const updateTimerQuery = `UPDATE tbl_timer SET ? where task_id = ?`;
+                await database.query(updateTimerQuery, [data, request_data.task_id]);
+    
+                return {
+                    code: response_code.SUCCESS,
+                    message: t('updated_successfully'),
+                    data: request_data.task_id
+                }
+            } else{
+                return {
+                    code: response_code.OPERATION_FAILED,
+                    message: t('can_not_start_timer'),
+                    data: request_data.task_id
+                }
+            } 
+
+        } catch(error){
+            console.log(error.message);
+            return {
+                code: response_code.OPERATION_FAILED,
+                message: t("some_error_occured"),
+                data: error.message
+            };
+        }
+    }
 }
 module.exports = new UserModel();

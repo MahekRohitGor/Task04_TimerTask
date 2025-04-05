@@ -29,8 +29,14 @@ class User{
 
     async list_all_tasks(req,res){
         const user_id = req.user_id;
-        console.log("list all task: ", user_id);
         const response_data = await userModel.list_all_tasks(user_id);
+        await common.response(res, response_data);
+    }
+
+    async updateStatus(req,res){
+        const request_data = req.body;
+        const user_id = req.user_id;
+        const response_data = await userModel.updateStatus(request_data, user_id);
         await common.response(res, response_data);
     }
     
