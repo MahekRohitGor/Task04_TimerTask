@@ -1,10 +1,13 @@
 document.addEventListener("DOMContentLoaded", function(){
     const button = document.getElementById("register");
-    const user_name = document.getElementById("uname").value;
-    const email_id = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    console.log(button);
 
-    button.addEventListener("click", function(){
+    button.addEventListener("click", function(event){
+        event.preventDefault();
+        const user_name = document.getElementById("uname").value;
+        const email_id = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
         const myHeaders = new Headers();
         myHeaders.append("api-key", "qyjiyX9YwzSb4ZNTdBS/EQ==");
         myHeaders.append("Content-Type", "application/json");
@@ -22,9 +25,17 @@ document.addEventListener("DOMContentLoaded", function(){
         redirect: "follow"
     };
 
-    fetch("localhost:5000/v1/user/signup", requestOptions)
+    fetch("http://localhost:5000/v1/user/signup", requestOptions)
         .then((response) => response.text())
-        .then((result) => console.log(result))
+        .then((result) => {
+            console.log(result);
+            const data = JSON.parse(result);
+            if(data.code == '1'){
+                window.location.href = "login.html";
+            } else{
+                alert(data.message);
+            }
+        })
         .catch((error) => console.error(error));
     })
     

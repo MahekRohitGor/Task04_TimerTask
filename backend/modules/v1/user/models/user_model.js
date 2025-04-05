@@ -143,5 +143,50 @@ class UserModel {
             };
         }
     }
+
+    async add_task(request_data, user_id){
+        try{
+            const checkUserLogin = await common.isLoginId(user_id);
+            if(!checkUserLogin){
+                return {
+                    code: response_code.OPERATION_FAILED,
+                    message: t("user_not_login"),
+                    data: null
+                }
+            }
+
+            const task_data = {
+                user_id: user_id,
+                task_title: request_data.task_title,
+                task_description: request_data.task_description,
+                deadline: request_data.deadline,
+                status: "pending"
+            }
+
+            const [task] = await database.query(`INSERT INTO tbl_tasks SET ?`, [task_data]);
+            const insert_task_id = task.insertId;
+
+            const timer_data = {
+                task_id: insert_task_id
+            }
+
+            await database.query(`INSERT INTO tbl_timer SET ?`, [timer_data]);
+            return {
+                code: response_code.SUCCESS,
+                message: t("task_added_success"),
+                data: {
+                    task_id: insert_task_id
+                }
+            }
+
+        } catch(error){
+            console.log(error.message);
+            return {
+                code: response_code.OPERATION_FAILED,
+                message: t("some_error_occured"),
+                data: error.message
+            };
+        }
+    }
 }
 module.exports = new UserModel();

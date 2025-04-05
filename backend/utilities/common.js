@@ -106,7 +106,16 @@ class Common{
         }
     }
 
-    
+    async isLoginId(user_id){
+        try{
+            const [user_data] = await database.query(`select * from tbl_user where user_id = ? and is_deleted = 0 and is_active = 1`, [user_id]);
+            return user_data.length > 0;
+            
+        } catch(error){
+            console.log(error.message);
+            return false;
+        }
+    }
 
     async updateToken(user_id, token){
         try{
