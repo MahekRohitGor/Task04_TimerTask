@@ -27,12 +27,16 @@ document.addEventListener("DOMContentLoaded", function(){
 
                 for(const task of res){
                     const htmlContent = `
-                    <div id="card">
-                    <p id="title">Title: <span id="title-span">${task.title}</span></p>
-                    <p id="title">Description: <span id="desc-span">${task.desc}</span></p>
-                    <p id="title">Deadline: <span id="deadline-span">${task.deadline}</span></p>
-                    <p id="title">Status: <span id="status-span">${task.status}</span></p>
-                    <p id="title">Notes: <span id="notes-span">${task.notes}</span></p>
+                    <div class="card" id="card-${task.user_id}-${task.task_id}">
+                    <p id="title-${task.task_id}">Title: <span id="title-${task.task_id}">${task.title}</span></p>
+                    <p id="desc-${task.task_id}">Description: <span id="desc-${task.task_id}">${task.desc}</span></p>
+                    <p id="deadline-${task.task_id}">Deadline: <span id="deadline-${task.task_id}">${task.deadline}</span></p>
+                    <p id="status-${task.task_id}">Status: <span id="status-${task.task_id}">${task.status}</span></p>
+                    <p id="notes-${task.task_id}">Notes: <span id="notes-${task.task_id}">${task.notes}</span></p>
+                    <span id="hr-${task.task_id}">00</span>:<span id="min-${task.task_id}">00</span>:<span id="sec-${task.task_id}">00</span><br>
+                    <button id="start-${task.task_id}">Start</button>
+                    <button id="pause-${task.task_id}">Pause</button>
+                    <button id="submit-${task.task_id}">Submit</button>
                     </div>
                     `
                     div_container.innerHTML += htmlContent;

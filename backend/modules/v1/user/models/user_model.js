@@ -213,6 +213,7 @@ class UserModel {
             }
 
             const task_details = task_data.map(task => ({
+                task_id: task.task_id,
                 user_id: user_id,
                 title: task.title,
                 desc: task.description,

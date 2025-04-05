@@ -1,4 +1,11 @@
 document.addEventListener("DOMContentLoaded", function(){
+    const user_token = JSON.parse(localStorage.getItem("user_token"));
+    console.log(user_token);
+    if(!user_token){
+        window.location.href = "login.html";
+        return;
+    }
+    
     if(document.getElementById("add_task_btn")){
         const add_task_btn = document.getElementById("add_task_btn");
         add_task_btn.addEventListener("click", function(){
